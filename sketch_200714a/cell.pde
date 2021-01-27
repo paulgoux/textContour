@@ -1,8 +1,8 @@
 class cell {
   float x, y, h, res, w, ry, rows_, cols_,avmax,ahmax,cutoff,mean,variance,theta1,theta2,theta3,mag,colmax,fGradient,bGradient;
-  int id, xpos, ypos, walls, counter, cols, rows,minr,maxr,pixelThresh = 20000,pixelThresh1,Mode,
-      minwr,maxwr,ucount,dcount,lcount,rcount,bcount,fcount,myMax,vmax,myMax1,avmax1,hmax,edgeD = -1,counted,edgeId = -1,wallType;
-  boolean visited, wall, link, edge, border, v1, v2, v3, v4,complete,update,max;
+  int id, xpos, ypos, walls, counter,counter2, cols, rows,minr,maxr,pixelThresh = 20000,pixelThresh1,Mode,leadPosition,
+      minwr,maxwr,ucount,dcount,lcount,rcount,bcount,fcount,myMax,vmax,myMax1,avmax1,hmax,edgeD = -1,counted,edgeId = -1,wallType,count;
+  boolean visited, wall, link, edge, border, v1, v2, v3, v4,complete,update,max,lineUpdate,mdown;
   ArrayList <cell> cells;
   ArrayList <cell> cellso;
   ArrayList< ArrayList<cell>> cells2D = new ArrayList<ArrayList<cell>>();
@@ -16,9 +16,10 @@ class cell {
   ArrayList <cell> unsortedEdges = new ArrayList<cell>();
   ArrayList <cell> sortedEdges = new ArrayList<cell>();
   ArrayList<ArrayList<cell>> superPixels = new ArrayList<ArrayList<cell>>();
+  HashMap<Integer,ArrayList <cell>> contourMap = new HashMap<Integer,ArrayList <cell>>();
   color col = color(random(255), random(255), random(255));
   cell parent;
-  PImage img,backup,canny,cannyE;
+  PImage img,backup,canny,cannyE,contour;
   PImage pImage;
   
   cell(){
@@ -216,14 +217,286 @@ class cell {
     //vertices[15] = null;
   };
   
+  void getLines(){
+    if(!lineUpdate){
+      
+      for(int i=0;i<contours.size();i++){
+        cell c = contours.get(i);
+        
+        boolean b = false;
+        for(int j=0;j<edges.size();j++){
+          if(!edges.get(j).contains(c)){
+            
+          }else{
+            b = true;
+            break;
+          }
+        }
+        if(!b){
+          ArrayList <cell> temp = new ArrayList<cell>();
+          temp.add(c);
+          edges.add(temp);
+        }
+        
+        boolean b1 = false;
+        int pos = -1;
+        for(int j=0;j<c.neighbours.size();j++){
+          cell c1 = c.neighbours.get(j);
+          for(int k=0;k<c.neighbours.size();k++){
+            if(!edges.get(k).contains(c1)){
+              
+            }else{
+              b1 = true;
+              pos = k;
+              break;
+            }
+          }
+          if(b1)break;
+        }
+        if(b1){
+          edges.get(pos).add(c);
+        }
+      }
+      lineUpdate = true;
+    }
+  };
   
+  void getLines2(){
+    if(!lineUpdate){
+      
+      //ArrayList <cell> temp = new ArrayList<cell>();
+      //for(int i=0;i<contours2.size();i++){
+      //  cell c = contours2.get(i);
+      //  temp.add(c);
+      //}
+       count = unsortedEdges.size()-1;
+      
+      while(unsortedEdges.size()>0){
+        println("edges0",unsortedEdges.size(),count);
+        cell c = unsortedEdges.remove(count);
+        ArrayList <cell> temp = new ArrayList<cell>();
+        boolean b2 = false;
+        if(contourMap.get(c.id)==null){
+          boolean b = false;
+          boolean b1 = false;
+          cell c3 = null;
+          int pos = -1,pos1 = -1;
+          //for(int j=0;j<edges.size();j++){
+            
+            for(int k=0;k<c.neighbours2.size();k++){
+              cell c1 = c.neighbours2.get(k);
+              if(contourMap.get(c1.id)==null){
+                if(unsortedEdges.contains(c1))temp.add(c1);
+              }else if(!b1){
+                b1 = true;
+                pos1 = c1.id;
+                pos = contourMap.get(c1.id).get(0).leadPosition;
+                //break;
+                c3 = c1;
+              }
+            }
+          //}
+          
+          if(b1){
+            //println("id",c.id);
+            //c.leadPosition = c3.leadPosition;
+            //edges.get(pos).add(c);
+            //ArrayList <cell> newEdge = new ArrayList<cell>();
+            //newEdge.add(c);
+            //contourMap.put(c.id,contourMap.get(c3.id));
+          }else {
+            ArrayList <cell> newEdge = new ArrayList<cell>();
+            c.leadPosition = edges.size();
+            newEdge.add(c);
+            edges.add(newEdge);
+            contourMap.put(c.id,newEdge);
+            for(int k=0;k<c.neighbours2.size();k++){
+              cell c1 = c.neighbours2.get(k);
+              
+              if(canny.pixels[c1.id]==color(0)){
+                contourMap.put(c1.id,contourMap.get(c.id));
+              }
+            }
+          }
+          if(temp.size()>0){
+            cell c1 = temp.get((int)random(temp.size()));
+            count = unsortedEdges.indexOf(c1);
+            println("count1",count);
+          }else{
+            count = (int)random(unsortedEdges.size());
+            println("count2",count);
+          }
+        }
+        else{
+          for(int k=0;k<c.neighbours2.size();k++){
+            cell c1 = c.neighbours2.get(k);
+            if(canny.pixels[c1.id]==color(0)&&contourMap.get(c1.id)==null){
+              
+              contourMap.put(c1.id,contourMap.get(c.id));
+              if(unsortedEdges.contains(c1)){
+                temp.add(c1);
+                
+              }
+            }
+            
+          }
+          //for(int k=0;k<c.neighbours2.size();k++){
+          //  cell c1 = c.neighbours2.get(k);
+          //  if(contourMap.get(c1.id)==null){
+          //    temp.add(c1);
+          //  }
+          //}
+            
+          if(temp.size()>1){
+            cell c1 = temp.get((int)random(temp.size()));
+            count = unsortedEdges.indexOf(c1);
+          }else if(temp.size()>0){
+            cell c1 = temp.get(0);
+            count = unsortedEdges.indexOf(c1);
+            
+          }else{
+            count = (int)random(unsortedEdges.size());
+          }
+          
+          //if(count>0)count--;
+          //else if(unsortedEdges.size()>1){
+          //  count = (int)random(unsortedEdges.size());
+          //}else if(unsortedEdges.size()>0){
+          //  count = 0;
+          //}
+          println("count3",count);
+        }
+      }
+      println("edges1",edges.size(),contours.size());
+      lineUpdate = true;
+    }
+  };
+  
+  void getLines3(){
+    println("getlines3",unsortedEdges.size());
+    while(unsortedEdges.size()>0){
+      count = unsortedEdges.size()-1;
+      cell c = null;
+      if(edges.size()>0){
+        
+        int lastEdge = edges.size()-1;
+        int lastPoint = edges.get(lastEdge).size()-1;
+        cell c1 = edges.get(lastEdge).get(lastPoint);
+        cell c2 = unsortedEdges.get(0);
+        for(int k=0;k<unsortedEdges.size();k++){
+          cell c3 = unsortedEdges.get(k);
+          
+          float d = dist(c1.x,c1.y,c2.x,c2.y);
+          float d1 = dist(c1.x,c1.y,c3.x,c3.y);
+          if(d1<d)c2 = c3;
+        }
+        c = unsortedEdges.remove(unsortedEdges.indexOf(c2));
+      }else{
+        
+       c = unsortedEdges.remove(count);
+       
+      }
+      //c.visited = true;
+      ArrayList <cell> newEdge = new ArrayList<cell>();
+      ArrayList <cell> queue = new ArrayList<cell>();
+      newEdge.add(c);
+      //if(c.visited){
+        //newEdge.add(c);
+        queue.add(c);
+      //}
+      
+      while(queue.size()>0){
+        c = queue.remove(0);
+        ArrayList <cell> temp = new ArrayList<cell>();
+        for(int k=0;k<c.neighbours2.size();k++){
+          cell c1 = c.neighbours2.get(k);
+          if(canny.pixels[c1.id]==color(0)){
+            contourMap.put(c1.id,contourMap.get(c.id));
+            if(unsortedEdges.contains(c1)){
+              temp.add(c1);
+            }
+          }
+        }
+        
+        if(temp.size()>1){
+          int pos = (int)random(temp.size());
+          cell c1 = unsortedEdges.remove(unsortedEdges.indexOf(temp.get(0)));
+          newEdge.add(c1);
+          queue.add(c1);
+        }else if(temp.size()>0){
+          cell c1 = unsortedEdges.remove(unsortedEdges.indexOf(temp.get(0)));
+          newEdge.add(c1);
+          queue.add(c1);
+          
+        }else{
+          println(edges.size(),newEdge.size());
+          edges.add(newEdge);
+        }
+      }
+    }
+    for(int k=edges.size()-1;k>-1;k--){
+      if(edges.get(k).size()==1){
+        edges.remove(k);
+      }
+    }
+    println("edges end",edges.size());
+  };
+  
+  void logic(){
+    if(mousePressed&&!mdown){
+      counter2 ++;
+      mdown = true;
+    }
+    if(!mousePressed)mdown = false;
+    if(counter2>1)counter2 = 0;
+  };
+  
+  void drawEdges(){
+    int mod = (int)map(mouseX,0,width,1,50);
+    int k=0;
+    for(int i=0;i<edges.size();i++){
+      
+      beginShape();
+      fill(255);
+      for(int j=0;j<edges.get(i).size();j++){
+        k++;
+        cell c = edges.get(i).get(j);
+        //if(k%mod==0)
+        //c.draw();
+        if(j%mod==0)
+        vertex(c.x,c.y);
+      }
+      endShape();
+    }
+  };
+  
+  void drawEdges2(){
+    logic();
+    if(counter2==0){
+    int pos = (int)map(mouseX,0,width,0,edges.size());
+    
+      for(int j=0;j<edges.get(pos).size();j++){
+        cell c = edges.get(pos).get(j);
+        
+        c.draw();
+      }
+    }else{
+      drawEdges();
+    }
+  };
+  
+  void draw(){
+    float h = map(mouseY,0,height,1,150);
+    stroke(0);
+    strokeWeight(h);
+    point(x,y);
+  };
   
   void getContour(){
     int kn = pixelThresh;
     boolean k1 = false;
     if(!update&&canny!=null){
       canny.loadPixels();
-      println("yes");
     for(int i=0;i<contours.size();i++){
       cell c1 = contours.get(i);
       
@@ -446,7 +719,7 @@ class cell {
               float db = abs(b - blue(c1));
               float da = abs(a - brightness(c1));
               
-              if(dr<cutoff&&dg<cutoff&&db<cutoff&&da<cutoff){
+              if(a<cutoff){
                 //println(dr,dg,db,da);
                 c.col = color(0);
                 c.wall = true;

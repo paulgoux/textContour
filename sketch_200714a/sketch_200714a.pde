@@ -9,9 +9,9 @@ int minr = 1,minwr = 1,maxr = 1000000,maxwr = 1000000,W = 1200,H = 600,edgeLengt
 String []functions ;
 PImage pimg;
 Img img;
-boolean update,updateC;
+boolean update,updateC,updateContours;
 color pixel; 
-String []wf = {"cannyTarget(4,200.0,3)"};
+String []wf = {"cannyTarget(4,255.0,1)"};
 String imPath;
 String shaderPath;
 cell cell;
@@ -26,7 +26,7 @@ void setup(){
   String shaderPath = dataPath("shaders").replace("/data/","")+"/";
   loc = imAndroidPath+"car.jpg";
   //img = new Img(loc);
-  img = new Img("The cat sat on the wall!",1000,100,30,70,70);
+  img = new Img("The cat sat on the wall!",1000,100,30,70,50);
   button = new Button(width - 100,10,90,20,"Reset");
 };
 int x =0,y =0;
@@ -51,12 +51,17 @@ void draw(){
     //img.displayWF(wf);
     img.displayWFText(wf);
     //img.displayText();
+    //img.cannyTarget(4,255.0,1);
     if(count ==0)println("workflow");
+    updateContours = true;
     //if(mousePressed)println("red", red(img.targetPixel),"green",green(img.targetPixel),"blue", blue(img.targetPixel));
   }
   //img.displayWF(wf);
   //if(mousePressed&&
   if(updateC)count ++;
+  if(updateContours){
+    img.cell.drawEdges2();
+  }
   button.draw();
 };
 

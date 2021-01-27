@@ -142,6 +142,7 @@ class Img {
       workFlowLabels.add("img");
       updateImg = true;
       init();
+      
     }
   };
   
@@ -358,11 +359,12 @@ class Img {
   void displayWFText(String []s){
     logic();
     displayText();
+    //cannyTarget(4,255.0,1);
     workflow(s);
-    if(imagesWF.size()>0)
-    image(imagesWF.get(counter),x,y);
-    //if(counter<workFlowLabels.size())
-    text(workFlowLabels.get(counter),10,10);
+    //if(imagesWF.size()>0)
+    //image(imagesWF.get(counter),x,y);
+    ////if(counter<workFlowLabels.size())
+    //text(workFlowLabels.get(counter),10,10);
     //println(imagesWF.size());
   };
   
@@ -449,6 +451,7 @@ class Img {
     int count = 0;
     if(!button.pos()&&mousePressed&&!mdown){
       mdown = true;
+      println("edges",cell.edges.size());
       counter++;
       
     }
@@ -497,10 +500,11 @@ class Img {
     cell.Mode = mode;
     cell.pixelThresh = 20000;
     cell.pixelThresh1 = t2;
-    println("cutoff",t1);
+    println("cutoff0",t1);
     cell.cutoff = t1;
     cell.imgUpdate(img,targetPixel);
     cell.getContour();
+    cell.getLines3();
     imagesWF.add(cell.canny);
     //imagesWF.add(cell.backup);
     //imagesWF.add(cell.img);
@@ -512,10 +516,11 @@ class Img {
     cell.Mode = mode;
     cell.pixelThresh = 20000;
     cell.pixelThresh1 = t2;
-    println("cutoff",t1);
+    println("cutoff1",t1);
     cell.cutoff = t1;
     cell.imgUpdate(img,targetPixel);
     cell.getContour();
+    cell.getLines3();
     imagesWF.add(cell.canny);
     //imagesWF.add(cell.backup);
     //imagesWF.add(cell.img);

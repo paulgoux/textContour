@@ -15,6 +15,7 @@ class Button{
   
   void draw(){
     fill(255);
+    strokeWeight(1);
     rect(x,y,w,h);
     fill(255);
     if(pos())fill(0,100);
